@@ -49,6 +49,37 @@ Speech to parse: ${text}`;
   }
 });
 
+app.post("/suggest-recipes", async (req, res) => {
+  const { ingredients } = req.body;
+  if (!ingredients) return res.status(400).json({ error: "No ingredients provided" });
+
+  const prompt = `You are a warm, practical nutritionist-chef. The user focuses on high-protein, anti-inflammatory, fertility-supportive eating: 130–150g protein/day, high fibre, ~7500 kJ daily cap. Suggest 3 recipes using their pantry ingredients. For each: recipe name, ingredients used, approx protein per serve, and a 3-sentence method. Metric units only.
+
+Their pantry: ${ingredients}
+
+What 3 recipes can they make?`;
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.7 },
+        }),
+      }
+    );
+    const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "No suggestions returned.";
+    res.json({ recipes: text });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to suggest recipes" });
+  }
+});
+
 app.get("/", (req, res) => res.send("Pantry API running ✓"));
 
 const PORT = process.env.PORT || 3000;
