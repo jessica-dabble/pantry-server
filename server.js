@@ -9,6 +9,7 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 app.post("/parse-ingredients", async (req, res) => {
   const { text } = req.body;
+  console.log("parse-ingredients called, text:", text);
   if (!text) return res.status(400).json({ error: "No text provided" });
 
   const prompt = `You extract pantry ingredients from natural spoken speech and return ONLY a JSON array. No preamble, no explanation, no markdown backticks.
@@ -38,13 +39,15 @@ Speech to parse: ${text}`;
     );
 
     const data = await response.json();
+    console.log("Gemini response:", JSON.stringify(data).slice(0, 300));
     const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
+    console.log("Raw text:", raw);
     const cleaned = raw.replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(cleaned);
     res.json({ ingredients: parsed });
 
   } catch (err) {
-    console.error(err);
+    console.error("parse-ingredients error:", err);
     res.status(500).json({ error: "Failed to parse ingredients" });
   }
 });
