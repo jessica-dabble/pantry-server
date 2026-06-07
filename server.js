@@ -60,6 +60,33 @@ Return [] if no ingredients found.`,
   }
 });
 
+app.post("/smart-search", async (req, res) => {
+  const { query, ingredients } = req.body;
+  console.log("smart-search called, query:", query);
+  if (!query || !ingredients) return res.status(400).json({ error: "Missing query or ingredients" });
+
+  try {
+    const raw = await callClaude(
+      `You are a pantry assistant. Given a search concept and a list of ingredients, return ONLY a JSON array of ingredient names that match the concept. No preamble, no explanation, no markdown.
+
+Examples:
+- concept "grains" → ["Rice", "Pasta", "Oats", "Quinoa", "Bread"]
+- concept "protein" → ["Chicken breast", "Eggs", "Greek yoghurt", "Tuna", "Lentils"]
+- concept "dairy" → ["Milk", "Cheese", "Butter", "Greek yoghurt"]
+- concept "vegetables" → ["Spinach", "Broccoli", "Tomatoes", "Carrots"]
+
+Return [] if nothing matches. Only return names that are in the provided ingredient list.`,
+      `Search concept: "${query}"\nIngredient list: ${ingredients}`
+    );
+    const cleaned = raw.replace(/```json|```/g, "").trim();
+    const matches = JSON.parse(cleaned);
+    res.json({ matches });
+  } catch (err) {
+    console.error("smart-search error:", err);
+    res.status(500).json({ matches: [] });
+  }
+});
+
 app.post("/suggest-recipes", async (req, res) => {
   const { ingredients } = req.body;
   console.log("suggest-recipes called");
