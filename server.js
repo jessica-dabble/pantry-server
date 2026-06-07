@@ -38,11 +38,13 @@ app.post("/parse-ingredients", async (req, res) => {
 
 Each item must have:
 - "name": clean ingredient name (e.g. "Chicken breast", "Greek yoghurt", "Olive oil")
-- "qty": quantity with unit if mentioned (e.g. "500g", "2", "1 litre") or "1" if not stated
+- "qty": quantity with unit if mentioned. Accept any natural form: "500g", "2 bottles", "1 packet", "3 tins", "half a kilo", "a dozen", "2L", "a bunch", "3 cans", "2 sachets", "1 jar", "a loaf". Use "1" if not stated.
 - "category": one of exactly: Fridge, Freezer, Pantry, Produce, Dairy, Meat, Spices, Other
+- "expiry": expiry date in YYYY-MM-DD format if mentioned (e.g. "expires next Friday", "use by 15th June", "expiry June 20"). Leave as empty string "" if not mentioned.
 
 Infer the category if not stated (e.g. milk → Dairy, chicken → Fridge, pasta → Pantry, spinach → Produce).
-Handle natural speech like "I've got some chicken in the fridge", "a couple of eggs", "half a kilo of mince".
+Handle natural speech like "I've got some chicken in the fridge expiring Friday", "a couple of eggs use by the 10th", "half a kilo of mince".
+Today's date is ${new Date().toISOString().slice(0, 10)}.
 Return [] if no ingredients found.`,
       text
     );
