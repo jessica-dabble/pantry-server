@@ -27,6 +27,35 @@ async function callClaude(system, user) {
   return data.content?.[0]?.text || "";
 }
 
+const SHEETS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbysu3SXh6SJWHF4vOBrLKLwXOvyLflRNitFTM-AewrHeWZJ6tlWJf3xX6aqfMfxGap0Dg/exec";
+
+app.get("/sheets-get", async (req, res) => {
+  console.log("sheets-get called");
+  try {
+    const response = await fetch(SHEETS_SCRIPT_URL + "?action=getAll");
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    console.error("sheets-get error:", err);
+    res.status(500).json({ items: [] });
+  }
+});
+
+app.post("/sheets-save", async (req, res) => {
+  console.log("sheets-save called, items:", req.body.items?.length);
+  try {
+    await fetch(SHEETS_SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({ action: "save", items: req.body.items }),
+    });
+    res.json({ success: true });
+  } catch (err) {
+    console.error("sheets-save error:", err);
+    res.status(500).json({ error: "Save failed" });
+  }
+});
+
 app.post("/parse-ingredients", async (req, res) => {
   const { text } = req.body;
   console.log("parse-ingredients called, text:", text);
